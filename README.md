@@ -173,7 +173,10 @@ ffmpeg -framerate $FRAMERATE -i /tmp/resampled/frame_%010d.png video_"$FRAMERATE
 ```
 
 ## Working with PyAER
-PyAER is a low-level Python APIs for Accessing Neuromorphic Devices, written by Yuhuang Hu of the Institute of Neuroinformatics Zurich (email: duguyue100@gmail.com). For installation and documentation, see https://dgyblog.com/pyaer-doc/. 
+PyAER is a low-level Python APIs for Accessing Neuromorphic Devices, written by Yuhuang Hu of the Institute of Neuroinformatics Zurich (email: duguyue100@gmail.com). Here we use it to process the event stream in real-time. 
+For installation and documentation, see https://dgyblog.com/pyaer-doc/. 
+
+Before running the code, make sure to get configs by e.g. running  `make davis346-test` in the PyAER directory. 
 
 
 
@@ -182,3 +185,4 @@ PyAER is a low-level Python APIs for Accessing Neuromorphic Devices, written by 
 This code borrows from the following open source projects, whom we would like to thank:
 
 - [pytorch-template](https://github.com/victoresque/pytorch-template)
+- [PyAER](https://github.com/duguyue100/pyaer)
