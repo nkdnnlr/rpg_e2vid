@@ -13,6 +13,18 @@ from utils.timers import Timer
 from image_reconstructor import ImageReconstructor
 from options.inference_options import set_inference_options
 
+from pyaer import libcaer
+from pyaer.davis import DAVIS
+
+
+def get_event(device):
+    data = device.get_event()
+
+    return data
+
+
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
@@ -34,6 +46,36 @@ if __name__ == "__main__":
     set_inference_options(parser)
 
     args = parser.parse_args()
+
+
+    # Setting up DAVIS
+    ne_device = DAVIS(noise_filter=True)
+
+    print("Device ID:", ne_device.device_id)
+    if ne_device.device_is_master:
+        print("Device is master.")
+    else:
+        print("Device is slave.")
+    print("Device Serial Number:", ne_device.device_serial_number)
+    print("Device String:", ne_device.device_string)
+    print("Device USB bus Number:", ne_device.device_usb_bus_number)
+    print("Device USB device address:", ne_device.device_usb_device_address)
+    print("Device size X:", ne_device.dvs_size_X)
+    print("Device size Y:", ne_device.dvs_size_Y)
+    print("Logic Version:", ne_device.logic_version)
+    print("Background Activity Filter:",
+          ne_device.dvs_has_background_activity_filter)
+
+    ne_device.start_data_stream()
+    # setting bias after data stream started
+    ne_device.set_bias_from_json("./configs/davis346_config.json")
+
+    clip_value = 3
+    histrange = [(0, v) for v in (260, 346)]
+
+    num_packet_before_disable = 1000
+
+
 
     # Loading model
     model = load_model(args.path_to_model)
@@ -76,8 +118,50 @@ if __name__ == "__main__":
                                         engine='c',
                                         skiprows=start_index, chunksize=N, nrows=None)
 
+    event_batch = np.empty((1,5))
+    event_batch_size = 0
+    event_batch_size_max = 10000
+    iterations = 0
+
     with Timer('Processing entire dataset'):
-        for event_tensor_pd in event_tensor_iterator:
+        while True:
+            event_batch = np.empty((1, 5))
+
+            while True:
+                if event_batch_size >= event_batch_size_max:
+                    break
+
+                try:
+                    iterations += 1
+                    data = get_event(ne_device)
+                    if data is not None:
+                        (pol_events, num_pol_event,
+                         special_events, num_special_event,
+                         frames_ts, frames, imu_events,
+                         num_imu_event) = data
+
+                        event_batch = np.concatenate((event_batch, pol_events))
+                        event_batch_size += num_pol_event
+
+                        continue
+
+                    else:
+                        pass
+
+                except KeyboardInterrupt:
+                    ne_device.shutdown()
+                    break
+
+            event_batch = event_batch[1:, 0:4]
+
+            event_tensor_pd = pd.DataFrame(data=event_batch,
+                                           columns=['t', 'x', 'y', 'pol'],
+                                           )
+            event_tensor_pd['t'] *= 1e-6
+            event_tensor_pd['x'].astype('int16')
+            event_tensor_pd['y'].astype('int16')
+            event_tensor_pd['pol'].astype('int16')
+
 
             last_timestamp = event_tensor_pd.values[-1, 0]
 
@@ -95,6 +179,7 @@ if __name__ == "__main__":
                                                                 height=args.height,
                                                                 device=device)
 
-            reconstructor.update_reconstruction(event_tensor, start_index + N, last_timestamp)
+            reconstructor.update_reconstruction(event_tensor, start_index + event_batch_size, last_timestamp)
 
-            start_index += N
+            start_index += event_batch_size
+            event_batch_size = 0
