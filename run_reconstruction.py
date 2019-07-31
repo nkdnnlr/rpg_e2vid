@@ -1,13 +1,15 @@
-import torch
-from utils.loading_utils import load_model, get_device
-from os.path import join, basename
-import numpy as np
 import json
 import argparse
+import time
+from os.path import join, basename
+
+import numpy as np
+import torch
+import pandas as pd
+
+from utils.loading_utils import load_model, get_device
 from utils.inference_utils import events_to_voxel_grid, events_to_voxel_grid_pytorch
 from utils.timers import Timer
-import time
-import pandas as pd
 from image_reconstructor import ImageReconstructor
 from options.inference_options import set_inference_options
 

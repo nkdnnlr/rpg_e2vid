@@ -140,13 +140,10 @@ if __name__ == "__main__":
                          frames_ts, frames, imu_events,
                          num_imu_event) = data
 
-                        event_batch = np.concatenate((event_batch, pol_events))
-                        event_batch_size += num_pol_event
+                        if pol_events is not None:
+                            event_batch = np.concatenate((event_batch, pol_events))
+                            event_batch_size += num_pol_event
 
-                        continue
-
-                    else:
-                        pass
 
                 except KeyboardInterrupt:
                     ne_device.shutdown()
