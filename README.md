@@ -172,6 +172,11 @@ python resample_reconstructions.py -i /path/to/input_folder -o /tmp/resampled -r
 ffmpeg -framerate $FRAMERATE -i /tmp/resampled/frame_%010d.png video_"$FRAMERATE"Hz.mp4
 ```
 
+## Working with PyAER
+PyAER is a low-level Python APIs for Accessing Neuromorphic Devices, written by Yuhuang Hu of the Institute of Neuroinformatics Zurich (email: duguyue100@gmail.com). For installation and documentation, see https://dgyblog.com/pyaer-doc/. 
+
+
+
 ## Acknowledgements
 
 This code borrows from the following open source projects, whom we would like to thank:
