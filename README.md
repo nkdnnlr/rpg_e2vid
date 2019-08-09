@@ -178,6 +178,12 @@ For installation and documentation, see https://dgyblog.com/pyaer-doc/.
 
 Before running the code, make sure to get configs by e.g. running  `make davis346-test` in the PyAER directory. 
 
+Run code with 
+
+```
+python run_reconstruction_realtime.py   -c pretrained/E2VID.pth.tar  --auto_hdr   --display   --show_events --output_folder='output'
+```
+
 
 
 ## Acknowledgements
